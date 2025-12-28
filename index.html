@@ -222,21 +222,20 @@ function checkMatch() {
   lockBoard = true;
 
   if (firstCell.dataset.icon === secondCell.dataset.icon) {
+    // Giống nhau → biến mất
     setTimeout(() => {
       firstCell.classList.add("hidden");
       secondCell.classList.add("hidden");
       resetTurn();
     }, 300);
   } else {
+    // Không giống nhau → GIỮ NGUYÊN HÌNH
     setTimeout(() => {
-      firstCell.innerHTML = "";
-      secondCell.innerHTML = "";
-      firstCell.dataset.open = "false";
-      secondCell.dataset.open = "false";
       resetTurn();
-    }, 600);
+    }, 300);
   }
 }
+
 
 function resetTurn() {
   firstCell = null;
