@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Memory Board</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Comic Sans MS", "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(180deg, #cdb4db, #ffc8dd);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+}
+
+.app {
+  width: 100%;
+  max-width: 700px;
+  padding: 15px;
+  text-align: center;
+}
+
+h2 {
+  background: #ffafcc;
+  color: #fff;
+  padding: 12px;
+  border-radius: 18px;
+  box-shadow: 0 6px 0 #e295b5;
+  margin-bottom: 15px;
+}
+
+
+.controls {
+  background: #fff;
+  border-radius: 20px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.controls input {
+  width: 55px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 2px solid #ffc8dd;
+  text-align: center;
+  font-weight: bold;
+}
+
+.controls button {
+  display: inline-block;
+  margin: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: none;
+  background: #a2d2ff;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #74b3e6;
+}
+
+.controls button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #74b3e6;
+}
+
+
+#icons {
+  background: #fff;
+  border-radius: 20px;
+  padding: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+#icons p {
+  margin-top: 0;
+  font-weight: bold;
+}
+
+#icons img {
+  width: 46px;
+  height: 64px;
+  margin: 6px;
+  border-radius: 14px;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: 0.2s;
+}
+
+#icons img.selected {
+  border-color: #ffafcc;
+  transform: scale(1.1);
+}
+
+
+.board {
+  background: #fff;
+  border-radius: 24px;
+  padding: 15px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+#grid {
+  display: grid;
+  justify-content: center;
+  gap: 10px;
+}
+
+.cell {
+  width: 64px;
+  height: 82px;
+  border-radius: 18px;
+  background: #bde0fe;
+  box-shadow: inset 0 -4px 0 #90c2e7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cell img {
+  width: 100%;
+  height: 100%;
+  border-radius: 18px;
+}
+
+.cell.hidden {
+  visibility: hidden;
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <h2>🧠 Event Play Together</h2>
+
+  <div class="controls">
+    Hàng <input id="rows" type="number" value="4" min="1">
+    Cột <input id="cols" type="number" value="4" min="1"><br>
+    <button onclick="createGrid()">🎲 Bắt đầu</button>
+    <button onclick="clearGrid()">🔄 Reset</button>
+  </div>
+
+  <div id="icons">
+    <p>🌟 Chọn biểu tượng</p>
+    <img src="./img/banhlai.png" onclick="selectIcon(this,'banhlai.png')">
+    <img src="./img/gaysao.png" onclick="selectIcon(this,'gaysao.png')">
+    <img src="./img/hinhthoi.png" onclick="selectIcon(this,'hinhthoi.png')">
+    <img src="./img/kinhlup.png" onclick="selectIcon(this,'kinhlup.png')">
+    <img src="./img/ly.png" onclick="selectIcon(this,'ly.png')">
+    <img src="./img/neo.png" onclick="selectIcon(this,'neo.png')">
+    <img src="./img/nhac.png" onclick="selectIcon(this,'nhac.png')">
+    <img src="./img/thuyensao.png" onclick="selectIcon(this,'thuyensao.png')">
+    <img src="./img/thuyentim.png" onclick="selectIcon(this,'thuyentim.png')">
+  </div>
+
+  <div class="board">
+    <div id="grid"></div>
+  </div>
+</div>
+
+<script>
+let currentIcon = "";
+let firstCell = null;
+let secondCell = null;
+let lockBoard = false;
+
+const grid = document.getElementById("grid");
+const rowsInput = document.getElementById("rows");
+const colsInput = document.getElementById("cols");
+
+function selectIcon(img, icon) {
+  document.querySelectorAll("#icons img")
+    .forEach(i => i.classList.remove("selected"));
+  img.classList.add("selected");
+  currentIcon = icon;
+}
+
+function createGrid() {
+  const rows = rowsInput.value;
+  const cols = colsInput.value;
+
+  grid.innerHTML = "";
+  grid.style.gridTemplateColumns = `repeat(${cols}, 64px)`;
+
+  firstCell = null;
+  secondCell = null;
+  lockBoard = false;
+
+  for (let i = 0; i < rows * cols; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.open = "false";
+    cell.dataset.icon = "";
+
+    cell.onclick = () => {
+      if (lockBoard || !currentIcon || cell.dataset.open === "true") return;
+
+      cell.innerHTML = `<img src="./img/${currentIcon}">`;
+      cell.dataset.open = "true";
+      cell.dataset.icon = currentIcon;
+
+      if (!firstCell) {
+        firstCell = cell;
+      } else {
+        secondCell = cell;
+        checkMatch();
+      }
+    };
+
+    grid.appendChild(cell);
+  }
+}
+
+function checkMatch() {
+  lockBoard = true;
+
+  if (firstCell.dataset.icon === secondCell.dataset.icon) {
+    setTimeout(() => {
+      firstCell.classList.add("hidden");
+      secondCell.classList.add("hidden");
+      resetTurn();
+    }, 300);
+  } else {
+    setTimeout(() => {
+      firstCell.innerHTML = "";
+      secondCell.innerHTML = "";
+      firstCell.dataset.open = "false";
+      secondCell.dataset.open = "false";
+      resetTurn();
+    }, 600);
+  }
+}
+
+function resetTurn() {
+  firstCell = null;
+  secondCell = null;
+  lockBoard = false;
+}
+
+function clearGrid() {
+  createGrid();
+}
+
+createGrid();
+</script>
+</body>
+</html>
